@@ -7,18 +7,20 @@ SAMPLE_RATE = 16000
 NUM_CHANNELS = 1
 CHUNK_SIZE = 640
 
+# Singleton pattern for Daily SDK initialization
+class DailySingleton:
+    _instance = None
 
-def is_playable_speaker(participant):
-    is_speaker = "userName" in participant["info"] and participant["info"]["userName"] == "Vapi Speaker"
-    mic = participant["media"]["microphone"]
-    is_subscribed = mic["subscribed"] == "subscribed"
-    is_playable = mic["state"] == "playable"
-    return is_speaker and is_subscribed and is_playable
-
+    def __new__(cls):
+        if cls._instance is None:
+            daily.Daily.init()
+            cls._instance = super(DailySingleton, cls).__new__(cls)
+        return cls._instance
 
 class DailyCall(daily.EventHandler):
     def __init__(self):
-        daily.Daily.init()
+        # Ensure Daily SDK is initialized only once
+        DailySingleton()
 
         self.__audio_interface = pyaudio.PyAudio()
 
